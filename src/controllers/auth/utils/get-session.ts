@@ -1,5 +1,5 @@
 import type { Request, Response } from "express"
-import { response } from "../../../lib/common"
+import { response } from "@ariefrahman39/shared-utils"
 import prisma from "../../../lib/db"
 
 export default async function getSession(req: Request, res: Response) {

@@ -1,5 +1,5 @@
 import type { RequestHandler } from "express"
-import { internalServerError, response } from "../../../lib/common"
+import { internalServerError, response } from "@ariefrahman39/shared-utils"
 import getSession from "../utils/get-session"
 
 const check: RequestHandler = async (req, res) => {

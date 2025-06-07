@@ -4,7 +4,7 @@ import {
   internalServerError,
   response,
   zodCatchHandler,
-} from "../../../lib/common"
+} from "@ariefrahman39/shared-utils"
 import { REFRESH_TOKEN_DURATION } from "../../../lib/constants"
 import prisma from "../../../lib/db"
 import loginSchema from "../../../schema/loginSchema"
