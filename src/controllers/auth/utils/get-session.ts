@@ -3,7 +3,7 @@ import { response } from "@ariefrahman39/shared-utils"
 import prisma from "../../../lib/db"
 
 export default async function getSession(req: Request, res: Response) {
-  const { refreshToken } = req.body
+  const { refreshToken } = req.body 
 
   if (!refreshToken) {
     response(res, 422, "Request body is missing required fields", {
