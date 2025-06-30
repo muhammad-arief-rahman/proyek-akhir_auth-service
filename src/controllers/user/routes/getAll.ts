@@ -5,7 +5,9 @@ import prisma from "../../../lib/db"
 const getAll: RequestHandler = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      
+      where: {
+        role: "customer"
+      }
     })
 
     response(res, 200, "Users retrieved successfully", users)

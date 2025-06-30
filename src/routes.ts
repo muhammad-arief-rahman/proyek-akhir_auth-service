@@ -20,4 +20,10 @@ router.get(
   UserController.getAll
 )
 
+router.get(
+  "/users/:id",
+  AuthMiddleware.authenticate("admin"),
+  UserController.getById
+)
+
 export default router
