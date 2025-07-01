@@ -1,5 +1,10 @@
 import type { RequestHandler } from "express"
-import { internalServerError, response } from "@ariefrahman39/shared-utils"
+import {
+  getAuthToken,
+  internalServerError,
+  response,
+  verifyJwt,
+} from "@ariefrahman39/shared-utils"
 import getSession from "../utils/get-session"
 
 const check: RequestHandler = async (req, res) => {
@@ -16,7 +21,13 @@ const check: RequestHandler = async (req, res) => {
       return
     }
 
-    response(res, 200, "Token is valid")
+    const token = getAuthToken(req)
+
+    response(res, 200, "Session is valid", {
+      token: token,
+      user: session,
+      jwt: await verifyJwt(token, "return"),
+    })
   } catch (error) {
     internalServerError(res, error)
   }

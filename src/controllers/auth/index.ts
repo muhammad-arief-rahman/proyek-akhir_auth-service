@@ -1,7 +1,4 @@
-import check from "./routes/check"
-import login from "./routes/login"
-import logout from "./routes/logout"
-import refresh from "./routes/refresh"
+import { login, refresh, logout, check } from "./routes"
 
 const AuthController = {
   login,

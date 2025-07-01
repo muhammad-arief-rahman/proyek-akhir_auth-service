@@ -1,5 +1,5 @@
 export const seconds = (n: number, fromMs: boolean = false) =>
-  n * (fromMs ? 1 : 1000) // Convert to milliseconds if fromMs is false
+  n * (fromMs ? 1000 : 1) // Convert to milliseconds if fromMs is false
 export const minutes = (n: number, fromMs: boolean = false) =>
   seconds(60, fromMs) * n
 export const hours = (n: number, fromMs: boolean = false) =>
