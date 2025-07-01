@@ -24,6 +24,12 @@ router.get(
   UserController.getAll
 )
 
+router.post(
+  "/users",
+  AuthMiddleware.authenticate("admin"),
+  UserController.store
+)
+
 router.get(
   "/users/:id",
   AuthMiddleware.authenticate("admin"),

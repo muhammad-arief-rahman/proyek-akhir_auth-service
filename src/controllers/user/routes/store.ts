@@ -1,40 +1,23 @@
-import { internalServerError, response } from "@ariefrahman39/shared-utils"
 import type { RequestHandler } from "express"
-import prisma from "../../../lib/db"
-import { userDataPatchSchema } from "../../../schema/user/data"
-import bcrypt from "bcrypt"
+import { userDataSchema } from "../../../schema/user/data"
 import axios from "axios"
+import prisma from "../../../lib/db"
+import bcrypt from "bcrypt"
+import { internalServerError, response } from "@ariefrahman39/shared-utils"
 
-const patch: RequestHandler = async (req, res) => {
+const store: RequestHandler = async (req, res) => {
   try {
-    const { id } = req.params
-
-    const user = await prisma.user.findUnique({
-      where: { id },
-    })
-
-    if (!user) {
-      response(res, 404, "User not found")
-      return
-    }
-
     // console.log("Files in request:", req.files)
-
-    const parsedData = userDataPatchSchema.parse({
+    const parsedData = userDataSchema.parse({
       ...req.body,
       avatar: ((req.files as Express.Multer.File[]) ?? [])?.find(
         (file) => file.fieldname === "image"
       ),
     })
 
+    let avatar: string | null = null
+
     // If the avatar is provided, it will be processed to the media service
-    let avatar: string | null = user.avatar
-
-    if (avatar) {
-      // Try and destroy the existing avatar if it exists
-      await axios.delete(`${process.env.MEDIA_SERVICE_URL}/data/${avatar}`)
-    }
-
     if (parsedData.avatar) {
       const formData = new FormData()
 
@@ -61,25 +44,22 @@ const patch: RequestHandler = async (req, res) => {
       }
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { id },
+    const updatedUser = await prisma.user.create({
       data: {
         name: parsedData.name,
         email: parsedData.email,
         phone: parsedData.phone,
-        password: parsedData.password
-          ? await bcrypt.hash(parsedData.password, 10)
-          : user.password,
+        password: await bcrypt.hash(parsedData.password, 10),
         avatar: avatar,
       },
     })
 
-    response(res, 200, "User patched successfully", updatedUser)
+    response(res, 200, "User created successfully", updatedUser)
   } catch (error) {
-    console.error("Error in patch user controller:", error)
+    console.error("Error in create user controller:", error)
 
     internalServerError(res, error)
   }
 }
 
-export default patch
+export default store
