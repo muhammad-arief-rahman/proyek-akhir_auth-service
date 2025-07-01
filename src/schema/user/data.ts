@@ -6,13 +6,25 @@ export const userDataSchema = z
     email: z.string().email("Invalid email format"),
     phone: z.string().min(1, "Phone number is required"),
     avatar: z
-      .any()
-      .refine((val) => !val || val instanceof File, {
-        message: "Image must be a file",
-      })
-      .refine((val) => !val || val?.type?.startsWith?.("image/"), {
-        message: "Image must be of type image/*",
-      })
+      .custom<Express.Multer.File>(
+        (file) => {
+          return (
+            file &&
+            typeof file === "object" &&
+            "fieldname" in file &&
+            "originalname" in file &&
+            "mimetype" in file &&
+            "size" in file &&
+            typeof file.fieldname === "string" &&
+            typeof file.originalname === "string" &&
+            typeof file.mimetype === "string" &&
+            typeof file.size === "number"
+          )
+        },
+        {
+          message: "File must be a valid multer file",
+        }
+      )
       .optional(),
     password: z
       .string()
