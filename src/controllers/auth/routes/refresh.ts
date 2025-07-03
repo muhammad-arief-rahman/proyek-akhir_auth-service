@@ -4,6 +4,7 @@ import prisma from "../../../lib/db"
 import generateUserToken from "../utils/generate-user-token"
 import { REFRESH_TOKEN_DURATION } from "../../../lib/constants"
 import getSession from "../utils/get-session"
+import { getCustomerByUserId } from "../../../helpers"
 
 export const refresh: RequestHandler = async (req, res) => {
   try {
@@ -46,8 +47,11 @@ export const refresh: RequestHandler = async (req, res) => {
       },
     })
 
+    const customerId = (await getCustomerByUserId(user.id))?.id
+
     response(res, 200, "Token refreshed", {
-      token: await generateUserToken(user),
+      token: await generateUserToken(user, customerId),
+
       refreshToken: newSession.token,
     })
   } catch (e) {

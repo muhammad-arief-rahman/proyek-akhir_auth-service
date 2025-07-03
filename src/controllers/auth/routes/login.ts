@@ -9,6 +9,8 @@ import { REFRESH_TOKEN_DURATION } from "../../../lib/constants"
 import prisma from "../../../lib/db"
 import loginSchema from "../../../schema/loginSchema"
 import generateUserToken from "../utils/generate-user-token"
+import axios from "axios"
+import { getCustomerByUserId } from "../../../helpers"
 
 const login: RequestHandler = async (req, res) => {
   try {
@@ -32,12 +34,32 @@ const login: RequestHandler = async (req, res) => {
       return
     }
 
-    // Delete old sessions
-    await prisma.userSession.deleteMany({
+    // Only allow 5 sessions per user
+    const userSessions = await prisma.userSession.count({
       where: {
         userId: user.id,
       },
     })
+
+    if (userSessions >= 5) {
+      // Delete the oldest session
+      const oldestSession = await prisma.userSession.findFirst({
+        where: {
+          userId: user.id,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      })
+
+      if (oldestSession) {
+        await prisma.userSession.delete({
+          where: {
+            id: oldestSession.id,
+          },
+        })
+      }
+    }
 
     // Create new sessions
     const session = await prisma.userSession.create({
@@ -48,8 +70,11 @@ const login: RequestHandler = async (req, res) => {
       },
     })
 
+    // Fetch customer by User Id
+    const customerId = (await getCustomerByUserId(user.id))?.id
+
     response(res, 200, "Login successful", {
-      token: await generateUserToken(user),
+      token: await generateUserToken(user, customerId),
       refreshToken: session.token,
     })
   } catch (error) {

@@ -3,7 +3,7 @@ import type { RequestHandler } from "express"
 import prisma from "../../../lib/db"
 import { userDataPatchSchema } from "../../../schema/user/data"
 import bcrypt from "bcrypt"
-import axios from "axios"
+import axios, { AxiosError } from "axios"
 
 const patch: RequestHandler = async (req, res) => {
   try {
@@ -32,7 +32,9 @@ const patch: RequestHandler = async (req, res) => {
 
     if (avatar) {
       // Try and destroy the existing avatar if it exists
-      await axios.delete(`${process.env.MEDIA_SERVICE_URL}/data/${avatar}`)
+      try {
+        await axios.delete(`${process.env.MEDIA_SERVICE_URL}/data/${avatar}`)
+      } catch (error) {}
     }
 
     if (parsedData.avatar) {
@@ -44,6 +46,9 @@ const patch: RequestHandler = async (req, res) => {
 
       formData.set("file", fileBlob, parsedData.avatar.originalname)
 
+      console.log("Media:", fileBlob)
+      console.log("Sending file to media service:", formData)
+
       const response = await axios.post(
         `${process.env.MEDIA_SERVICE_URL}/data`,
         formData,
@@ -53,6 +58,8 @@ const patch: RequestHandler = async (req, res) => {
           },
         }
       )
+
+      console.log("Media service response:", response.data)
 
       const mediaId = response.data?.data?.[0]
 
@@ -76,7 +83,10 @@ const patch: RequestHandler = async (req, res) => {
 
     response(res, 200, "User patched successfully", updatedUser)
   } catch (error) {
-    console.error("Error in patch user controller:", error)
+    if (error instanceof AxiosError) {
+      console.log("Axios error:", error.response?.data || error.message)
+      // console.error("Axios error:", error)
+    }
 
     internalServerError(res, error)
   }

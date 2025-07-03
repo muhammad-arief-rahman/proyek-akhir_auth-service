@@ -3,7 +3,7 @@ import { ACCESS_TOKEN_DURATION } from "./constants"
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET as string)
 
-export async function generateJwtToken<T>(
+export async function generateJwt<T>(
   payload: Record<string, T>,
   expiresIn = ACCESS_TOKEN_DURATION
 ) {
