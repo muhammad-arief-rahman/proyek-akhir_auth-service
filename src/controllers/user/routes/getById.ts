@@ -4,6 +4,13 @@ import prisma from "../../../lib/db"
 
 const show: RequestHandler = async (req, res) => {
   try {
+    if (req.user?.role !== "admin") {
+      if (req.user?.id !== req.params.id) {
+        response(res, 403, "Forbidden: You can only access your own data")
+        return
+      }
+    }
+    
     const user = await prisma.user.findUnique({
       where: {
         id: req.params.id

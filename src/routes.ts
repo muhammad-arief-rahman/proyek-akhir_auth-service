@@ -4,6 +4,7 @@ import { AuthMiddleware, response } from "@ariefrahman39/shared-utils"
 import UserController from "./controllers/user"
 
 const router = Router()
+const authenticated = Router().use(AuthMiddleware.authenticate())
 
 router.get("/", (req, res) => {
   response(res, 200, "Auth Service is running")
@@ -30,16 +31,9 @@ router.post(
   UserController.store
 )
 
-router.get(
-  "/users/:id",
-  AuthMiddleware.authenticate("admin"),
-  UserController.getById
-)
+authenticated.patch("/users/:id", UserController.patch)
+authenticated.get("/users/:id", UserController.getById)
 
-router.patch(
-  "/users/:id",
-  AuthMiddleware.authenticate("admin"),
-  UserController.patch
-)
+router.use(authenticated)
 
 export default router

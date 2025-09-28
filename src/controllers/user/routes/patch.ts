@@ -1,4 +1,8 @@
-import { internalServerError, response } from "@ariefrahman39/shared-utils"
+import {
+  internalServerError,
+  response,
+  storeMedia,
+} from "@ariefrahman39/shared-utils"
 import type { RequestHandler } from "express"
 import prisma from "../../../lib/db"
 import { userDataPatchSchema } from "../../../schema/user/data"
@@ -8,6 +12,13 @@ import axios, { AxiosError } from "axios"
 const patch: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params
+
+    if (req.user?.role !== "admin") {
+      if (req.user?.id !== id) {
+        response(res, 403, "Forbidden: You can only access your own data")
+        return
+      }
+    }
 
     const user = await prisma.user.findUnique({
       where: { id },
@@ -30,7 +41,7 @@ const patch: RequestHandler = async (req, res) => {
     // If the avatar is provided, it will be processed to the media service
     let avatar: string | null = user.avatar
 
-    if (avatar) {
+    if (avatar && parsedData.avatar) {
       // Try and destroy the existing avatar if it exists
       try {
         await axios.delete(`${process.env.MEDIA_SERVICE_URL}/data/${avatar}`)
@@ -38,30 +49,8 @@ const patch: RequestHandler = async (req, res) => {
     }
 
     if (parsedData.avatar) {
-      const formData = new FormData()
-
-      const fileBlob = new Blob([parsedData.avatar.buffer], {
-        type: parsedData.avatar.mimetype,
-      })
-
-      formData.set("file", fileBlob, parsedData.avatar.originalname)
-
-      console.log("Media:", fileBlob)
-      console.log("Sending file to media service:", formData)
-
-      const response = await axios.post(
-        `${process.env.MEDIA_SERVICE_URL}/data`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      )
-
-      console.log("Media service response:", response.data)
-
-      const mediaId = response.data?.data?.[0]
+      const id = await storeMedia(parsedData.avatar)
+      const mediaId = id?.[0]
 
       if (mediaId) {
         avatar = mediaId

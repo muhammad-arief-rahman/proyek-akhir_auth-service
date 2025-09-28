@@ -7,6 +7,7 @@ export default async function generateUserToken(user: User, customerId?: string 
     email: user.email,
     name: user.name,
     role: user.role,
+    avatar: user.avatar,
     customerId: customerId ?? null,
   })
 }
